@@ -37,6 +37,7 @@
 #include <asm/arch/gpio.h>
 #include <asm/mach-types.h>
 #include "beagle.h"
+#include "logo.h"
 
 static int beagle_revision;
 
@@ -124,6 +125,121 @@ void display_init(void)
 	omap3_dss_set_background_col(DVI_BEAGLE_ORANGE_COL);
 }
 
+void dss_init(void)
+{
+	unsigned long i, y;
+	unsigned long p = 0;
+	unsigned char pixel[3];
+
+	/* assuming a resolution of 1280x720 - draw logo into dss buffer */
+
+	/* Add the image data */
+	for (i = 0; i < header_data_rle_size; i++) {
+		for (y = 0; y < header_data_rle[i][0]; y++) {
+			HEADER_PIXEL(header_data_rle[i][1], pixel);
+			*((unsigned short *)(0x80500000 + p*2)) =
+				((((pixel[0])&0xf8) << 8) |
+				(((pixel[1])&0xfc) << 3) |
+				(((pixel[2])&0xf8) >> 3));
+			p++;
+		}
+	}
+
+	writel(0xfefffedf, 0x48310034); /* GPIO_OE(1) */
+	writel(0x01000120, 0x48310094); /* GPIO_SETDATAOUT(1) */
+	writel(0x0001b00c, 0x48004D44); /* CM_CLKSEL2_PLL */
+	writel(0x00001006, 0x48004E40);
+	writel(0x00370037, 0x48004D00);
+	writel(0x00000002, 0x48050C00);
+	writel(0x0000001B, 0x48050C04);
+	writel(0x00000040, 0x48050C08);
+	writel(0x00000000, 0x48050C0C);
+	writel(0x00000000, 0x48050C10);
+	writel(0x00008000, 0x48050C14);
+	writel(0x00000000, 0x48050C18);
+	writel(0x00008359, 0x48050C1C);
+	writel(0x0000020C, 0x48050C20);
+	writel(0x00000000, 0x48050C24);
+	writel(0x043F2631, 0x48050C28);
+	writel(0x00000024, 0x48050C2C);
+	writel(0x00000130, 0x48050C30);
+	writel(0x00000198, 0x48050C34);
+	writel(0x000001C0, 0x48050C38);
+	writel(0x0000006A, 0x48050C3C);
+	writel(0x0000005C, 0x48050C40);
+	writel(0x00000000, 0x48050C44);
+	writel(0x00000001, 0x48050C48);
+	writel(0x0000003F, 0x48050C4C);
+	writel(0x21F07C1F, 0x48050C50);
+	writel(0x00000000, 0x48050C54);
+	writel(0x00000015, 0x48050C58);
+	writel(0x00001400, 0x48050C5C);
+	writel(0x00000000, 0x48050C60);
+	writel(0x069300F4, 0x48050C64);
+	writel(0x0016020C, 0x48050C68);
+	writel(0x00060107, 0x48050C6C);
+	writel(0x008D034E, 0x48050C70);
+	writel(0x000F0359, 0x48050C74);
+	writel(0x01A00000, 0x48050C78);
+	writel(0x020501A0, 0x48050C7C);
+	writel(0x01AC0024, 0x48050C80);
+	writel(0x020D01AC, 0x48050C84);
+	writel(0x00000006, 0x48050C88);
+	writel(0x00000000, 0x48050C8C);
+	writel(0x03480079, 0x48050C90);
+	writel(0x02040024, 0x48050C94);
+	writel(0x00000000, 0x48050C98);
+	writel(0x00000000, 0x48050C9C);
+	writel(0x0001008A, 0x48050CA0);
+	writel(0x01AC0106, 0x48050CA4);
+	writel(0x01060006, 0x48050CA8);
+	writel(0x00000000, 0x48050CAC);
+	writel(0x00140001, 0x48050CB0);
+	writel(0x00010001, 0x48050CB4);
+	writel(0x00FF0000, 0x48050CB8);
+	writel(0x00000000, 0x48050CBC);
+	writel(0x00000000, 0x48050CC0);
+	writel(0x0000000D, 0x48050CC4);
+	writel(0x00000000, 0x48050CC8);
+	writel(0x00000001, 0x48050010);
+	writel(0x00000078, 0x48050040);
+	writel(0x00000000, 0x48050044);
+	writel(0x00000000, 0x48050048);
+	writel(0x00000000, 0x48050050);
+	writel(0x00000000, 0x48050058);
+	writel(0x00002015, 0x48050410);
+	writel(0x00000001, 0x48050414);
+	writel(0x00000004, 0x48050444);
+	writel(0xFFFFFFFF, 0x4805044c);
+	writel(0x00000000, 0x48050450);
+	writel(0x00000000, 0x48050454);
+	writel(0x00000000, 0x48050458);
+	writel(0x0ff03f31, 0x48050464);
+	writel(0x01400504, 0x48050468);
+	writel(0x00007028, 0x4805046c);
+	writel(0x00010002, 0x48050470);
+	writel(0x00ef027f, 0x48050478);
+	writel(0x02cf04ff, 0x4805047c);
+	writel(0x80500000, 0x48050480);
+	writel(0x80500000, 0x48050484);
+	writel(0x00000000, 0x48050488);
+	writel(0x02cf04ff, 0x4805048c);
+	writel(0x0000008d, 0x480504a0);
+	writel(0x03fc03bc, 0x480504a4);
+	writel(0x00000400, 0x480504a8);
+	writel(0x00000001, 0x480504ac);
+	writel(0x00000001, 0x480504b0);
+	writel(0x00000000, 0x480504b4);
+	writel(0x807ff000, 0x480504b8);
+	udelay(1000);
+	writel(0x0001836b, 0x48050440);
+	udelay(1000);
+	writel(0x0001836b, 0x48050440);
+	udelay(1000);
+	writel(0x0001836b, 0x48050440);
+	udelay(1000);
+}
+ 
 /*
  * Routine: misc_init_r
  * Description: Configure board specific parts
@@ -135,6 +251,7 @@ int misc_init_r(void)
 
 	display_init();
 	beagle_identify();
+	dss_init();
 
 	twl4030_power_init();
 	twl4030_led_init();
