@@ -27,8 +27,30 @@
  */
 
 /* here include your Gimp logo */
-#include "logo.h"
+#include "gaben-beagle-logo.h"
+
+/* name of the output filename remember, that if you change it, don't forget
+ * to change it in beagle.c also */
+#define LOGO_FILENAME "logo.h"
+
+/* usually you don't need to change this */
+#define MAX_COLORS 256
+
 #include <stdio.h>
+
+static char header[] = "\
+/*\n\
+ * Automagically generated using gimp2rle (c) 2010 Petr Stetiar <ynezz@true.cz>\n\
+ * It's available on http://github.com/ynezz/beagleboard-uboot-logo\n\
+ */\n\n\
+#ifndef _LOGO_H_\n\
+#define _LOGO_H_\n\n\
+#define HEADER_PIXEL(data,pixel) {\\\n\
+pixel[0] = header_data_cmap[(unsigned char)data][0]; \\\n\
+pixel[1] = header_data_cmap[(unsigned char)data][1]; \\\n\
+pixel[2] = header_data_cmap[(unsigned char)data][2]; \\\n\
+}\n\n\
+";
 
 int main(void)
 {
@@ -38,16 +60,38 @@ int main(void)
 	unsigned long i = 0;
 	unsigned long count = 0;
 	unsigned long rle_size = 0;
+	FILE *fd = NULL;
 
-	fprintf(stdout, "static unsigned long header_data_rle[][2] = {\n");
+	fd = fopen(LOGO_FILENAME, "wb+");
+	if (fd == NULL) {
+		fprintf(stderr, "Can't open logo file '%s'\n",
+			LOGO_FILENAME);
+		return -1;
+	}
+
+	fprintf(fd, "%s", header);
+	fprintf(fd, "static char header_data_cmap[%d][3] = {\n",
+		MAX_COLORS);
+
+	/* color table */
+	for (i=0; i < MAX_COLORS; i++) {
+		fprintf(fd, "\t{%3d, %3d, %3d},\n",
+			(unsigned char) header_data_cmap[i][0],
+			(unsigned char) header_data_cmap[i][1],
+			(unsigned char) header_data_cmap[i][2]);
+	}
+
+	fprintf(fd, "};\n\n");
+	fprintf(fd, "static unsigned long header_data_rle[][2] = {\n");
+
+	/* RLE data */
 	last = header_data[i];
-
 	for (i=0; i < width*height; i++) {
 		current = header_data[i];
 		count++;
 
 		if (current != last) {
-			fprintf(stdout, "\t {%lu, %d}, \n", count, last);
+			fprintf(fd, "\t {%lu, %d}, \n", count, last);
 			rle_size++;
 			last = current;
 			count = 0;
@@ -55,8 +99,9 @@ int main(void)
 	}
 
 	rle_size++;
-	fprintf(stdout, "\t {%lu, %d},\n};\n", count, last);
-	fprintf(stdout, "static unsigned long header_data_rle_size = %lu;\n", rle_size);
+	fprintf(fd, "\t {%lu, %d},\n};\n", count, last);
+	fprintf(fd, "static unsigned long header_data_rle_size = %lu;\n", rle_size);
+	fprintf(fd, "#endif /* _LOGO_H_ */\n");
 
 	return 0;
 }
